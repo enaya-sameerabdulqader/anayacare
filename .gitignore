@@ -3,6 +3,7 @@
 *.xls
 *.csv
 !gov_violations/security/ir.model.access.csv
+!x_gov_violations/security/ir.model.access.csv
 tools/out/
 __pycache__/
 *.pyc
