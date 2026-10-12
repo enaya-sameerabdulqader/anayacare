@@ -1,0 +1,9 @@
+# Source data and generated datasets stay out of git (this repository is public).
+*.xlsx
+*.xls
+*.csv
+!gov_violations/security/ir.model.access.csv
+tools/out/
+__pycache__/
+*.pyc
+mappings.json

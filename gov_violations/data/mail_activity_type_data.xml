@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="mail_activity_type_objection_deadline" model="mail.activity.type">
+        <field name="name">تذكير موعد الاعتراض</field>
+        <field name="summary">موعد الاعتراض يقترب</field>
+        <field name="icon">fa-gavel</field>
+        <field name="res_model">gov.violation</field>
+        <field name="delay_count">0</field>
+    </record>
+</odoo>

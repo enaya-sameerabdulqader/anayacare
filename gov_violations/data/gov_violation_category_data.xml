@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="cat_cancelled_license" model="gov.violation.category">
+        <field name="name">التشغيل برخصة ملغاة</field>
+        <field name="sequence">10</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">ملغاة,ملغيه,ملغية,ملغاه</field>
+    </record>
+    <record id="cat_health_cert" model="gov.violation.category">
+        <field name="name">الشهادة الصحية</field>
+        <field name="sequence">20</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">صحي,شهاد,شهايد,كرت,كروت</field>
+    </record>
+    <record id="cat_qr" model="gov.violation.category">
+        <field name="name">رمز QR للرخصة</field>
+        <field name="sequence">30</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">QR,الرمز الموحد,الرمز الالكتروني,الرمز الإلكتروني,الباركود</field>
+    </record>
+    <record id="cat_license" model="gov.violation.category">
+        <field name="name">الرخصة والنشاط</field>
+        <field name="sequence">40</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">رخص,ترخيص,مزاولة النشاط</field>
+    </record>
+    <record id="cat_waste" model="gov.violation.category">
+        <field name="name">تصريف المواد المنتهية</field>
+        <field name="sequence">50</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">منتهية الصلاحية,التخلص,الاستخدام الواحد</field>
+    </record>
+    <record id="cat_uniform" model="gov.violation.category">
+        <field name="name">الزي الرسمي</field>
+        <field name="sequence">60</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">الزي الرسمي,الزي,الزى</field>
+    </record>
+    <record id="cat_devices" model="gov.violation.category">
+        <field name="name">الأجهزة والمنتجات</field>
+        <field name="sequence">70</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">جهاز,اجهزة,أجهزة,منتج,ادعاء طبي</field>
+    </record>
+    <record id="cat_signs" model="gov.violation.category">
+        <field name="name">اشتراطات اللوحات</field>
+        <field name="sequence">80</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">لوحة,لوحه,اللوحات,ملصقات</field>
+    </record>
+    <record id="cat_premises" model="gov.violation.category">
+        <field name="name">المبنى والنظافة</field>
+        <field name="sequence">15</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">الصرف,المبنى والتجهيزات,تجهيزات</field>
+    </record>
+    <record id="cat_staff" model="gov.violation.category">
+        <field name="name">مخالفات العاملين</field>
+        <field name="sequence">100</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">مخالفات العاملين</field>
+    </record>
+    <record id="cat_public_hygiene" model="gov.violation.category">
+        <field name="name">النظافة العامة</field>
+        <field name="sequence">110</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">النظافة العامة</field>
+    </record>
+    <record id="cat_visual" model="gov.violation.category">
+        <field name="name">التشوه البصري</field>
+        <field name="sequence">120</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">التشوه البصري</field>
+    </record>
+    <record id="cat_parking" model="gov.violation.category">
+        <field name="name">الرقابة على مواقف السيارات</field>
+        <field name="sequence">130</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">مواقف السيارات</field>
+    </record>
+    <record id="cat_general" model="gov.violation.category">
+        <field name="name">المخالفات العامة</field>
+        <field name="sequence">140</field>
+        <field name="authority">municipality</field>
+        <field name="keywords">المخالفات العامة</field>
+    </record>
+    <record id="cat_ajeer" model="gov.violation.category">
+        <field name="name">إشعار أجير</field>
+        <field name="sequence">150</field>
+        <field name="authority">labor</field>
+        <field name="keywords">أجير</field>
+    </record>
+    <record id="cat_saudization" model="gov.violation.category">
+        <field name="name">مهن مقصورة على السعوديين</field>
+        <field name="sequence">160</field>
+        <field name="authority">labor</field>
+        <field name="keywords">مقصورة على السعوديين</field>
+    </record>
+    <record id="cat_labor_other" model="gov.violation.category">
+        <field name="name">مكتب العمل - أخرى</field>
+        <field name="sequence">170</field>
+        <field name="authority">labor</field>
+    </record>
+    <record id="cat_other" model="gov.violation.category">
+        <field name="name">أخرى / غير محدد</field>
+        <field name="sequence">180</field>
+    </record>
+</odoo>
