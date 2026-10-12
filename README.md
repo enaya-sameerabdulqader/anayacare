@@ -1,5 +1,26 @@
 # anayacare
 
+## What is installed where (staging `enayagroup-staging-39642487`)
+
+* **`x_gov_violations`** — importable module (no Python), installed on staging
+  on 2026-10-12 with the Import Module wizard from `dist/x_gov_violations.zip`.
+  This is the live register on staging (models `x_gov_violation`,
+  `x_gov_violation_category`, `x_gov_license_map`, `x_gov_balady_line`).
+* **`dashboard/`** — source of the `gov-violations` web app on staging.
+* **`gov_violations/`** — the full Python addon (tested, not installed). Use it
+  instead of the importable module once the Odoo.sh repository is reachable;
+  it would need a data migration from the `x_` models.
+
+### Monthly Balady update (importable module)
+
+1. المخالفات الحكومية → استيراد ملف بلدي → ⚙ → استيراد السجلات.
+2. Upload the Balady file with the header row as row 1 (delete the title rows
+   above the headers). The 20 columns map automatically.
+3. Press "معالجة كسجل كامل" (or "كإضافة فقط" for a partial file).
+
+To rebuild the importable module after editing it:
+`python3 tools/gen_x_models.py` then zip `x_gov_violations/` into `dist/`.
+
 ## gov_violations — Government Violations Register (Odoo 19)
 
 Addon `gov_violations/` (19.0.3.0.0): labor office / municipality (Balady) /
