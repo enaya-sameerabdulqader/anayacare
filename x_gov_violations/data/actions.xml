@@ -285,4 +285,107 @@ action = {'type': 'ir.actions.client', 'tag': 'display_notification',
           'params': {'title': 'ربط التراخيص', 'message': 'تم تحديث %s مخالفة' % count, 'type': 'success'}}
 ]]></field>
     </record>
+
+    <!-- ==============================================================
+         Vendor bill from an unpaid violation. Vendor: system parameter
+         x_gov_violations.vendor_company_<company id> (partner id), else a
+         vendor named "Government Payments" of the violation's company.
+         Account by authority (4015201 / 4015202 / 4015203), branch as
+         analytic distribution, no taxes, bill date = violation date.
+         The bill is created in draft and linked on the violation.
+         ============================================================== -->
+    <record id="action_create_bill" model="ir.actions.server">
+        <field name="name">إنشاء فاتورة مورد</field>
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="binding_model_id" ref="model_x_gov_violation"/>
+        <field name="group_ids" eval="[Command.link(ref('account.group_account_invoice'))]"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+ICP = env['ir.config_parameter'].sudo()
+CODES = {'municipality': '4015201', 'labor': '4015202', 'other': '4015203'}
+bills = env['account.move']
+skipped = []
+for v in records:
+    if v.x_status != 'unpaid':
+        skipped.append(v.x_name + ': ليست غير مسددة')
+        continue
+    if v.x_bill_id and v.x_bill_id.state != 'cancel':
+        skipped.append(v.x_name + ': لها فاتورة مورد مسبقاً')
+        continue
+    if not v.x_amount:
+        skipped.append(v.x_name + ': بدون مبلغ')
+        continue
+    company = v.x_company_id
+    partner = env['res.partner']
+    param = ICP.get_param('x_gov_violations.vendor_company_%d' % company.id)
+    if param:
+        partner = env['res.partner'].browse(int(param)).exists()
+    if not partner:
+        partner = env['res.partner'].search([('name', '=', 'Government Payments'), ('company_id', 'in', [company.id, False])], limit=1)
+    if not partner:
+        raise UserError('لا يوجد مورد مخالفات للشركة %s. أنشئ مورداً باسم Government Payments لهذه الشركة أو حدّد المعامل x_gov_violations.vendor_company_%d.' % (company.name, company.id))
+    account = env['account.account'].with_company(company).search([('code', '=', CODES.get(v.x_authority, '4015203')), ('company_ids', 'in', company.id)], limit=1)
+    if not account:
+        raise UserError('لا يوجد حساب %s في شركة %s.' % (CODES.get(v.x_authority), company.name))
+    journal = env['account.journal'].search([('type', '=', 'purchase'), ('company_id', '=', company.id)], limit=1)
+    label = 'مخالفة %s' % v.x_name
+    if v.x_category_id:
+        label += ' - ' + v.x_category_id.x_name
+    if v.x_branch_id:
+        label += ' - ' + v.x_branch_id.name
+    line = {'name': label, 'account_id': account.id, 'quantity': 1, 'price_unit': v.x_amount, 'tax_ids': [Command.clear()]}
+    if v.x_branch_id:
+        line['analytic_distribution'] = {str(v.x_branch_id.id): 100}
+    note = []
+    if v.x_municipal_license:
+        note.append('الترخيص: ' + v.x_municipal_license)
+    if v.x_invoice_number:
+        note.append('رقم فاتورة بلدي: ' + v.x_invoice_number)
+    if v.x_sadad_number:
+        note.append('رقم السداد: ' + v.x_sadad_number)
+    if v.x_description:
+        note.append(v.x_description)
+    bill = env['account.move'].with_company(company).create({
+        'move_type': 'in_invoice',
+        'partner_id': partner.id,
+        'journal_id': journal.id,
+        'company_id': company.id,
+        'invoice_date': v.x_violation_date or datetime.date.today(),
+        'ref': v.x_name,
+        'payment_reference': v.x_invoice_number or v.x_sadad_number or v.x_name,
+        'narration': '\n'.join(note),
+        'invoice_line_ids': [Command.create(line)],
+    })
+    v.write({'x_bill_id': bill.id})
+    v.message_post(body='تم إنشاء فاتورة مورد (مسودة) للمخالفة بمبلغ %s ريال.' % v.x_amount)
+    bills |= bill
+if len(bills) == 1:
+    action = {'type': 'ir.actions.act_window', 'res_model': 'account.move', 'res_id': bills.id,
+              'view_mode': 'form', 'views': [[False, 'form']], 'target': 'current'}
+elif bills:
+    action = {'type': 'ir.actions.act_window', 'name': 'فواتير المخالفات', 'res_model': 'account.move',
+              'domain': [('id', 'in', bills.ids)], 'view_mode': 'list,form', 'views': [[False, 'list'], [False, 'form']]}
+else:
+    action = {'type': 'ir.actions.client', 'tag': 'display_notification',
+              'params': {'title': 'لم يتم إنشاء فواتير', 'message': ' | '.join(skipped) or 'لا توجد مخالفات مناسبة', 'type': 'warning', 'sticky': True}}
+]]></field>
+    </record>
+
+    <!-- Mark violations paid when their vendor bill is paid (also run daily by the cron). -->
+    <record id="action_sync_bill_payment" model="ir.actions.server">
+        <field name="name">مزامنة السداد من فواتير المورد</field>
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="binding_model_id" ref="model_x_gov_violation"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+V = env['x_gov_violation'].with_context(active_test=False)
+todo = V.search([('x_status', '=', 'unpaid'), ('x_bill_id', '!=', False),
+                 ('x_bill_id.state', '=', 'posted'), ('x_bill_id.payment_state', 'in', ['paid', 'in_payment'])])
+for v in todo:
+    v.write({'x_status': 'paid', 'x_paid_date': v.x_paid_date or datetime.date.today()})
+    v.message_post(body='تم تسجيل السداد تلقائياً من فاتورة المورد %s.' % v.x_bill_id.name)
+action = {'type': 'ir.actions.client', 'tag': 'display_notification',
+          'params': {'title': 'مزامنة السداد', 'message': 'تم تحديث %s مخالفة إلى مسددة' % len(todo), 'type': 'success'}}
+]]></field>
+    </record>
 </odoo>

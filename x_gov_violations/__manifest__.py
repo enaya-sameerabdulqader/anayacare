@@ -1,12 +1,12 @@
 {
     'name': 'سجل المخالفات الحكومية',
-    'version': '19.0.1.0.0',
+    'version': '19.0.1.1.0',
     'category': 'Productivity',
     'summary': 'Government violations register (labor / municipality / other), '
                'Balady import, EW / EM split, objection tracking',
     'author': 'Enaya IT',
     'license': 'LGPL-3',
-    'depends': ['mail', 'analytic', 'base_import'],
+    'depends': ['mail', 'analytic', 'base_import', 'account'],
     'data': [
         'data/models.xml',
         'security/groups.xml',

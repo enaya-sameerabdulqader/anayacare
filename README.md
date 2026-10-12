@@ -18,6 +18,18 @@
    above the headers). The 20 columns map automatically.
 3. Press "معالجة كسجل كامل" (or "كإضافة فقط" for a partial file).
 
+### Vendor bills (19.0.1.1.0)
+
+* Button "إنشاء فاتورة مورد" on each unpaid violation (also in the Action menu
+  for several at once): creates a **draft** vendor bill — vendor
+  "Government Payments" of the violation's company (or the partner id in system
+  parameter `x_gov_violations.vendor_company_<company id>`), account 4015201 /
+  4015202 / 4015203 by authority, branch as analytic, no taxes, bill date =
+  violation date, reference = violation number, payment reference = Balady
+  invoice / SADAD number. The bill is linked on the violation; no duplicates.
+* When the bill is paid, "مزامنة السداد من فواتير المورد" (and the daily cron)
+  marks the violation paid, so it leaves outstanding exposure.
+
 To rebuild the importable module after editing it:
 `python3 tools/gen_x_models.py` then zip `x_gov_violations/` into `dist/`.
 

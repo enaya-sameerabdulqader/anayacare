@@ -29,6 +29,8 @@
                 <field name="x_days_left" optional="show"/>
                 <field name="x_open_exposure" sum="المستحق" optional="show"/>
                 <field name="x_needs_review" optional="show"/>
+                <field name="x_bill_id" optional="show" groups="account.group_account_invoice"/>
+                <field name="x_bill_status" optional="show" groups="account.group_account_invoice"/>
                 <field name="x_date_warning" optional="hide"/>
                 <field name="x_in_register" optional="hide"/>
                 <field name="x_suspected_duplicate" optional="hide"/>
@@ -46,6 +48,10 @@
                 <header>
                     <button name="%(x_gov_violations.action_mark_paid)d" type="action" string="تسجيل السداد"
                             class="oe_highlight" invisible="x_status != 'unpaid'"/>
+                    <button name="%(x_gov_violations.action_create_bill)d" type="action" string="إنشاء فاتورة مورد"
+                            class="btn-secondary" invisible="x_status != 'unpaid' or x_bill_id"
+                            groups="account.group_account_invoice"
+                            confirm="سيتم إنشاء فاتورة مورد (مسودة) بمبلغ المخالفة. متابعة؟"/>
                     <button name="%(x_gov_violations.action_cancel)d" type="action" string="إلغاء المخالفة"
                             invisible="x_status != 'unpaid'"
                             groups="x_gov_violations.group_gov_violation_manager"
@@ -96,6 +102,8 @@
                             <field name="x_invoice_number"/>
                             <field name="x_offender_ref"/>
                             <field name="x_paid_date" invisible="x_status != 'paid'"/>
+                            <field name="x_bill_id" readonly="1" invisible="not x_bill_id" groups="account.group_account_invoice"/>
+                            <field name="x_bill_status" invisible="not x_bill_id" groups="account.group_account_invoice"/>
                             <field name="x_user_id" widget="many2one_avatar_user"/>
                             <field name="x_needs_review"/>
                             <field name="x_suspected_duplicate"/>
@@ -241,6 +249,9 @@
                         domain="[('x_objection_state', '=', 'open'), ('x_objection_deadline', '&lt;=', (context_today() + relativedelta(days=7)).strftime('%Y-%m-%d'))]"/>
                 <filter name="objection_filed" string="تم الاعتراض" domain="[('x_objection_state', '=', 'filed')]"/>
                 <filter name="objection_pending" string="اعتراض قيد النظر" domain="[('x_objection_outcome', '=', 'pending')]"/>
+                <separator/>
+                <filter name="no_bill" string="غير مسددة بدون فاتورة مورد" domain="[('x_status', '=', 'unpaid'), ('x_bill_id', '=', False)]"/>
+                <filter name="has_bill" string="لها فاتورة مورد" domain="[('x_bill_id', '!=', False)]"/>
                 <separator/>
                 <filter name="needs_review" string="يحتاج تأكيد" domain="[('x_needs_review', '=', True)]"/>
                 <filter name="not_in_register" string="خارج سجل بلدي" domain="[('x_authority', '=', 'municipality'), ('x_in_register', '=', False)]"/>

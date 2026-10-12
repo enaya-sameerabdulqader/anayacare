@@ -14,6 +14,7 @@ stale = V.search([('x_objection_state', '=', 'open'), ('x_objection_deadline', '
 stale |= V.search([('x_date_warning', '=', True)])
 if stale:
     stale.write({'x_refresh_stamp': datetime.datetime.now()})
+env.ref('x_gov_violations.action_sync_bill_payment').run()
 try:
     days = int(env['ir.config_parameter'].sudo().get_param('x_gov_violations.reminder_days', '7'))
 except ValueError:

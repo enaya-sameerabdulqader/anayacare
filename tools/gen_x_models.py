@@ -50,6 +50,18 @@ for record in self:
     day = record.x_violation_date
     deadline = record.x_objection_deadline
     record['x_date_warning'] = bool(day and (day > today or (deadline and deadline < day)))'''),
+'x_bill_status': ('x_bill_id.state,x_bill_id.payment_state', '''LABELS = {'not_paid': 'غير مدفوعة', 'in_payment': 'قيد الدفع', 'paid': 'مدفوعة', 'partial': 'مدفوعة جزئياً', 'reversed': 'معكوسة'}
+for record in self:
+    bill = record.x_bill_id
+    if not bill:
+        value = ''
+    elif bill.state == 'draft':
+        value = 'مسودة'
+    elif bill.state == 'cancel':
+        value = 'ملغاة'
+    else:
+        value = LABELS.get(bill.payment_state, bill.payment_state or '')
+    record['x_bill_status'] = value'''),
 'x_is_mapped': ('x_branch_id,x_company_id', '''for record in self:
     record['x_is_mapped'] = bool(record.x_branch_id or 'sustainable' in (record.x_company_id.name or '').lower())'''),
 }
@@ -104,6 +116,8 @@ VIOLATION = [
  ('x_note', 'ملاحظات', 'text', {}),
  ('x_reminder_sent', 'تم إرسال تذكير الاعتراض', 'boolean', {}),
  ('x_refresh_stamp', 'تحديث تقني', 'datetime', {}),
+ ('x_bill_id', 'فاتورة المورد', 'many2one', {'relation': 'account.move', 'tracking': 1, 'on_delete': 'set null'}),
+ ('x_bill_status', 'حالة فاتورة المورد', 'char', {'compute': 1}),
 ]
 CATEGORY = [
  ('x_name', 'التصنيف', 'char', {'required': 1}),
