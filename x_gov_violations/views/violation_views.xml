@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_violation_list" model="ir.ui.view">
+        <field name="name">x_gov_violation.list</field>
+        <field name="model">x_gov_violation</field>
+        <field name="arch" type="xml">
+            <list sample="1"
+                  decoration-danger="x_objection_state == 'open' and x_days_left &lt;= 7 and x_status == 'unpaid'"
+                  decoration-muted="x_status in ('paid', 'cancelled', 'linked')">
+                <field name="x_name"/>
+                <field name="x_authority"/>
+                <field name="x_company_id" optional="show"/>
+                <field name="x_branch_id" optional="show"/>
+                <field name="x_division" optional="show"/>
+                <field name="x_category_id" optional="show"/>
+                <field name="x_municipal_license" optional="hide"/>
+                <field name="x_municipality" optional="hide"/>
+                <field name="x_violation_date"/>
+                <field name="x_amount" sum="الإجمالي"/>
+                <field name="x_status" widget="badge"
+                       decoration-success="x_status == 'paid'"
+                       decoration-warning="x_status == 'unpaid'"
+                       decoration-muted="x_status in ('cancelled', 'linked')"/>
+                <field name="x_objection_state" widget="badge"
+                       decoration-success="x_objection_state == 'open'"
+                       decoration-info="x_objection_state == 'filed'"
+                       decoration-muted="x_objection_state in ('expired', 'not_allowed')"/>
+                <field name="x_objection_deadline"/>
+                <field name="x_days_left" optional="show"/>
+                <field name="x_open_exposure" sum="المستحق" optional="show"/>
+                <field name="x_needs_review" optional="show"/>
+                <field name="x_date_warning" optional="hide"/>
+                <field name="x_in_register" optional="hide"/>
+                <field name="x_suspected_duplicate" optional="hide"/>
+                <field name="x_user_id" widget="many2one_avatar_user" optional="hide"/>
+                <field name="activity_ids" widget="list_activity" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_violation_form" model="ir.ui.view">
+        <field name="name">x_gov_violation.form</field>
+        <field name="model">x_gov_violation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="%(x_gov_violations.action_mark_paid)d" type="action" string="تسجيل السداد"
+                            class="oe_highlight" invisible="x_status != 'unpaid'"/>
+                    <button name="%(x_gov_violations.action_cancel)d" type="action" string="إلغاء المخالفة"
+                            invisible="x_status != 'unpaid'"
+                            groups="x_gov_violations.group_gov_violation_manager"
+                            confirm="هل أنت متأكد من إلغاء هذه المخالفة؟"/>
+                    <button name="%(x_gov_violations.action_reset_unpaid)d" type="action" string="إعادة إلى غير مسددة"
+                            invisible="x_status == 'unpaid'"
+                            groups="x_gov_violations.group_gov_violation_manager"/>
+                    <button name="%(x_gov_violations.action_confirm_review)d" type="action" string="تأكيد المراجعة"
+                            invisible="not x_needs_review"
+                            groups="x_gov_violations.group_gov_violation_manager"/>
+                    <field name="x_status" widget="statusbar" statusbar_visible="unpaid,paid"/>
+                </header>
+                <sheet>
+                    <widget name="web_ribbon" title="مؤرشفة" bg_color="text-bg-danger" invisible="x_active"/>
+                    <widget name="web_ribbon" title="مكررة محتملة" bg_color="text-bg-warning"
+                            invisible="not x_active or not x_suspected_duplicate"/>
+                    <widget name="web_ribbon" title="خارج سجل بلدي" bg_color="text-bg-warning"
+                            invisible="not x_active or x_suspected_duplicate or x_in_register"/>
+                    <field name="x_active" invisible="1"/>
+                    <div class="alert alert-warning" role="alert" invisible="not x_needs_review">
+                        <strong>يحتاج تأكيد: </strong>
+                        <field name="x_review_reason" readonly="1" class="d-inline"/>
+                    </div>
+                    <div class="alert alert-info" role="alert" invisible="not x_date_warning">
+                        تحذير تاريخ: موعد الاعتراض قبل تاريخ المخالفة، أو تاريخ المخالفة في المستقبل.
+                    </div>
+                    <div class="oe_title">
+                        <label for="x_name"/>
+                        <h1><field name="x_name" placeholder="V-0000000"/></h1>
+                    </div>
+                    <group>
+                        <group string="بيانات المخالفة">
+                            <field name="x_authority"/>
+                            <field name="x_company_id" options="{'no_create': True}"/>
+                            <field name="x_branch_id" options="{'no_create': True}"
+                                   domain="[('plan_id.name', '=', 'Location'), '|', ('company_id', '=', False), ('company_id', '=', x_company_id)]"/>
+                            <field name="x_division"/>
+                            <field name="x_category_id" options="{'no_create': True}"
+                                   domain="['|', ('x_authority', '=', False), ('x_authority', '=', x_authority)]"/>
+                            <field name="x_violation_code"/>
+                            <field name="x_reason"/>
+                            <field name="x_violation_date"/>
+                            <field name="x_amount"/>
+                            <field name="x_open_exposure"/>
+                        </group>
+                        <group string="السداد والمتابعة">
+                            <field name="x_sadad_number"/>
+                            <field name="x_invoice_number"/>
+                            <field name="x_offender_ref"/>
+                            <field name="x_paid_date" invisible="x_status != 'paid'"/>
+                            <field name="x_user_id" widget="many2one_avatar_user"/>
+                            <field name="x_needs_review"/>
+                            <field name="x_suspected_duplicate"/>
+                            <field name="x_in_register" invisible="x_authority != 'municipality'"/>
+                            <field name="x_source"/>
+                        </group>
+                    </group>
+                    <group string="الاعتراض">
+                        <group>
+                            <field name="x_objection_allowed"/>
+                            <field name="x_objection_deadline" invisible="not x_objection_allowed"/>
+                            <field name="x_deadline_suggested" invisible="not x_objection_allowed"/>
+                            <field name="x_objection_state" widget="badge"
+                                   decoration-success="x_objection_state == 'open'"
+                                   decoration-info="x_objection_state == 'filed'"
+                                   decoration-muted="x_objection_state in ('expired', 'not_allowed')"/>
+                            <field name="x_days_left" invisible="x_objection_state != 'open'"/>
+                        </group>
+                        <group>
+                            <field name="x_objection_filed" invisible="not x_objection_allowed"/>
+                            <field name="x_objection_filed_date" invisible="not x_objection_filed"/>
+                            <field name="x_objection_outcome" invisible="not x_objection_filed"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="بيانات بلدي" name="balady" invisible="x_authority != 'municipality'">
+                            <group>
+                                <group>
+                                    <field name="x_municipal_license"/>
+                                    <field name="x_license_type"/>
+                                    <field name="x_municipality"/>
+                                    <field name="x_establishment"/>
+                                </group>
+                                <group>
+                                    <field name="x_regulation_clause"/>
+                                    <field name="x_repeat_count"/>
+                                    <field name="x_units"/>
+                                    <field name="x_main_item"/>
+                                </group>
+                            </group>
+                            <group>
+                                <field name="x_inspector_note"/>
+                            </group>
+                        </page>
+                        <page string="طلب الاعتراض" name="objection_request">
+                            <group>
+                                <field name="x_objection_ref"/>
+                                <field name="x_objection_status_text"/>
+                                <field name="x_committee_decision"/>
+                            </group>
+                        </page>
+                        <page string="التفاصيل" name="details">
+                            <group>
+                                <field name="x_description" placeholder="وصف المخالفة..."/>
+                                <field name="x_note" placeholder="ملاحظات..."/>
+                                <field name="x_review_reason"/>
+                                <field name="x_date_warning"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_violation_kanban" model="ir.ui.view">
+        <field name="name">x_gov_violation.kanban</field>
+        <field name="model">x_gov_violation</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile" sample="1" quick_create="false" default_group_by="x_status">
+                <templates>
+                    <t t-name="card">
+                        <div class="d-flex align-items-baseline">
+                            <field class="fw-bold fs-5 me-2" name="x_name"/>
+                            <field class="fw-bold ms-auto flex-shrink-0" name="x_amount"/>
+                        </div>
+                        <div class="d-flex mt-1 text-muted">
+                            <field name="x_authority"/>
+                            <field class="ms-2" name="x_branch_id"/>
+                            <field class="ms-2" name="x_category_id"/>
+                        </div>
+                        <div class="d-flex mt-2 align-items-center">
+                            <field name="x_objection_state"/>
+                            <field class="ms-2 text-muted" name="x_objection_deadline"/>
+                            <div class="ms-auto d-flex align-items-center">
+                                <field name="activity_ids" widget="kanban_activity"/>
+                                <field name="x_user_id" widget="many2one_avatar_user" class="ms-1"/>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_violation_calendar" model="ir.ui.view">
+        <field name="name">x_gov_violation.calendar</field>
+        <field name="model">x_gov_violation</field>
+        <field name="arch" type="xml">
+            <calendar string="مواعيد الاعتراض" date_start="x_objection_deadline" color="x_user_id"
+                      mode="month" quick_create="0" event_open_popup="1">
+                <field name="x_name"/>
+                <field name="x_authority"/>
+                <field name="x_amount"/>
+                <field name="x_objection_state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_violation_search" model="ir.ui.view">
+        <field name="name">x_gov_violation.search</field>
+        <field name="model">x_gov_violation</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="x_name" string="رقم المخالفة / السداد / الفاتورة"
+                       filter_domain="['|', '|', ('x_name', 'ilike', self), ('x_sadad_number', 'ilike', self), ('x_invoice_number', 'ilike', self)]"/>
+                <field name="x_municipal_license"/>
+                <field name="x_municipality"/>
+                <field name="x_objection_ref"/>
+                <field name="x_description"/>
+                <field name="x_offender_ref"/>
+                <field name="x_branch_id"/>
+                <field name="x_category_id"/>
+                <field name="x_user_id"/>
+                <filter name="my_violations" string="مخالفاتي" domain="[('x_user_id', '=', uid)]"/>
+                <separator/>
+                <filter name="labor" string="مكتب العمل" domain="[('x_authority', '=', 'labor')]"/>
+                <filter name="municipality" string="البلدية" domain="[('x_authority', '=', 'municipality')]"/>
+                <filter name="other_authority" string="جهة أخرى" domain="[('x_authority', '=', 'other')]"/>
+                <separator/>
+                <filter name="unpaid" string="غير مسددة" domain="[('x_status', '=', 'unpaid')]"/>
+                <filter name="paid" string="مسددة" domain="[('x_status', '=', 'paid')]"/>
+                <filter name="cancelled" string="ملغية" domain="[('x_status', '=', 'cancelled')]"/>
+                <filter name="linked" string="مرتبطة بدون غرامة" domain="[('x_status', '=', 'linked')]"/>
+                <separator/>
+                <filter name="div_ew" string="سيدات (EW)" domain="[('x_division', '=', 'ew')]"/>
+                <filter name="div_em" string="رجال (EM)" domain="[('x_division', '=', 'em')]"/>
+                <filter name="div_other" string="غير مرتبط بفرع / الفنادق" domain="[('x_division', 'in', ('hotels', 'unalloc'))]"/>
+                <separator/>
+                <filter name="objection_open" string="مفتوحة للاعتراض" domain="[('x_objection_state', '=', 'open')]"/>
+                <filter name="objection_expiring" string="ينتهي الاعتراض خلال 7 أيام"
+                        domain="[('x_objection_state', '=', 'open'), ('x_objection_deadline', '&lt;=', (context_today() + relativedelta(days=7)).strftime('%Y-%m-%d'))]"/>
+                <filter name="objection_filed" string="تم الاعتراض" domain="[('x_objection_state', '=', 'filed')]"/>
+                <filter name="objection_pending" string="اعتراض قيد النظر" domain="[('x_objection_outcome', '=', 'pending')]"/>
+                <separator/>
+                <filter name="needs_review" string="يحتاج تأكيد" domain="[('x_needs_review', '=', True)]"/>
+                <filter name="not_in_register" string="خارج سجل بلدي" domain="[('x_authority', '=', 'municipality'), ('x_in_register', '=', False)]"/>
+                <filter name="date_warning" string="تحذير تاريخ" domain="[('x_date_warning', '=', True)]"/>
+                <filter name="suspected_duplicate" string="مكررة محتملة" domain="[('x_suspected_duplicate', '=', True)]"/>
+                <separator/>
+                <filter name="violation_date" string="تاريخ المخالفة" date="x_violation_date"/>
+                <separator/>
+                <filter name="archived" string="مؤرشفة" domain="[('x_active', '=', False)]"/>
+                <group>
+                    <filter name="group_authority" string="الجهة" context="{'group_by': 'x_authority'}"/>
+                    <filter name="group_company" string="الشركة" context="{'group_by': 'x_company_id'}"/>
+                    <filter name="group_branch" string="الفرع" context="{'group_by': 'x_branch_id'}"/>
+                    <filter name="group_division" string="القسم" context="{'group_by': 'x_division'}"/>
+                    <filter name="group_status" string="حالة السداد" context="{'group_by': 'x_status'}"/>
+                    <filter name="group_objection" string="نافذة الاعتراض" context="{'group_by': 'x_objection_state'}"/>
+                    <filter name="group_category" string="التصنيف" context="{'group_by': 'x_category_id'}"/>
+                    <filter name="group_municipality" string="الأمانة / البلدية" context="{'group_by': 'x_municipality'}"/>
+                    <filter name="group_license" string="الترخيص" context="{'group_by': 'x_municipal_license'}"/>
+                    <filter name="group_main_item" string="البند الرئيسي" context="{'group_by': 'x_main_item'}"/>
+                    <filter name="group_user" string="المسؤول" context="{'group_by': 'x_user_id'}"/>
+                    <filter name="group_month" string="شهر المخالفة" context="{'group_by': 'x_violation_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_violation_pivot" model="ir.ui.view">
+        <field name="name">x_gov_violation.pivot</field>
+        <field name="model">x_gov_violation</field>
+        <field name="arch" type="xml">
+            <pivot sample="1">
+                <field name="x_division" type="row"/>
+                <field name="x_status" type="col"/>
+                <field name="x_amount" type="measure"/>
+                <field name="x_open_exposure" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_violation_graph" model="ir.ui.view">
+        <field name="name">x_gov_violation.graph</field>
+        <field name="model">x_gov_violation</field>
+        <field name="arch" type="xml">
+            <graph type="bar" sample="1">
+                <field name="x_category_id"/>
+                <field name="x_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_violation" model="ir.actions.act_window">
+        <field name="name">المخالفات</field>
+        <field name="res_model">x_gov_violation</field>
+        <field name="view_mode">list,kanban,form,calendar,pivot,graph,activity</field>
+        <field name="search_view_id" ref="view_violation_search"/>
+        <field name="context">{'search_default_unpaid': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">سجّل أول مخالفة حكومية</p>
+            <p>تابع غرامات مكتب العمل والبلدية والجهات الأخرى، وحالة سدادها، وموعد الاعتراض.</p>
+        </field>
+    </record>
+</odoo>

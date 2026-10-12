@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Staging area for the Balady file: import it here with the standard
+         Odoo import (the column labels are the Balady headers), then process. -->
+    <record id="view_balady_line_list" model="ir.ui.view">
+        <field name="name">x_gov_balady_line.list</field>
+        <field name="model">x_gov_balady_line</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <header>
+                    <button name="%(x_gov_violations.action_process_balady_full)d" type="action"
+                            string="معالجة كسجل كامل" class="btn-primary" display="always"/>
+                    <button name="%(x_gov_violations.action_process_balady_append)d" type="action"
+                            string="معالجة كإضافة فقط" display="always"/>
+                </header>
+                <field name="x_name"/>
+                <field name="x_violation_date"/>
+                <field name="x_license"/>
+                <field name="x_license_type" optional="hide"/>
+                <field name="x_municipality"/>
+                <field name="x_establishment" optional="hide"/>
+                <field name="x_clause" optional="hide"/>
+                <field name="x_repeat_count" optional="hide"/>
+                <field name="x_units" optional="hide"/>
+                <field name="x_deadline"/>
+                <field name="x_days_left_file" optional="hide"/>
+                <field name="x_amount" sum="الإجمالي"/>
+                <field name="x_invoice"/>
+                <field name="x_invoice_status"/>
+                <field name="x_main_item" optional="hide"/>
+                <field name="x_inspector_note" optional="hide"/>
+                <field name="x_objection_ref" optional="hide"/>
+                <field name="x_objection_date" optional="hide"/>
+                <field name="x_objection_status" optional="hide"/>
+                <field name="x_decision" optional="hide"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_balady_line" model="ir.actions.act_window">
+        <field name="name">استيراد ملف بلدي</field>
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">استورد ملف بلدي هنا</p>
+            <p>من قائمة الإعدادات (⚙) اختر "استيراد السجلات" وارفع ملف بلدي بصف العناوين في السطر الأول
+               (نفس الأعمدة العشرين). بعد الاستيراد اضغط "معالجة كسجل كامل" إذا كان الملف يحتوي كل
+               المخالفات غير المسددة، أو "معالجة كإضافة فقط" لإضافة مخالفات جديدة دون تعليم الناقص.</p>
+        </field>
+    </record>
+</odoo>

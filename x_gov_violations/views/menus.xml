@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_root" name="المخالفات الحكومية"
+              web_icon="x_gov_violations,static/description/icon.png"
+              sequence="96" groups="group_gov_violation_user"/>
+    <menuitem id="menu_violation" name="المخالفات" parent="menu_root"
+              action="action_violation" sequence="1"/>
+    <menuitem id="menu_balady_import" name="استيراد ملف بلدي" parent="menu_root"
+              action="action_balady_line" sequence="10" groups="group_gov_violation_manager"/>
+    <menuitem id="menu_config" name="الإعدادات" parent="menu_root"
+              sequence="90" groups="group_gov_violation_manager"/>
+    <menuitem id="menu_category" name="التصنيفات" parent="menu_config"
+              action="action_category" sequence="10"/>
+    <menuitem id="menu_license_map" name="ربط التراخيص بالفروع" parent="menu_config"
+              action="action_license_map" sequence="20"/>
+</odoo>

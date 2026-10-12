@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Daily: refresh the stored fields that depend on today's date (objection
+         window, date warning) by bumping x_refresh_stamp, then schedule
+         objection reminders for the follow-up owner. -->
+    <record id="cron_daily_refresh" model="ir.cron">
+        <field name="name">المخالفات الحكومية: تحديث نوافذ الاعتراض والتذكيرات</field>
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+today = datetime.date.today()
+V = env['x_gov_violation'].with_context(active_test=False, tracking_disable=True)
+stale = V.search([('x_objection_state', '=', 'open'), ('x_objection_deadline', '<', today)])
+stale |= V.search([('x_date_warning', '=', True)])
+if stale:
+    stale.write({'x_refresh_stamp': datetime.datetime.now()})
+try:
+    days = int(env['ir.config_parameter'].sudo().get_param('x_gov_violations.reminder_days', '7'))
+except ValueError:
+    days = 7
+if days > 0:
+    due = V.search([
+        ('x_active', '=', True), ('x_status', '=', 'unpaid'),
+        ('x_objection_state', '=', 'open'), ('x_objection_deadline', '!=', False),
+        ('x_objection_deadline', '<=', today + datetime.timedelta(days=days)),
+        ('x_reminder_sent', '=', False), ('x_user_id', '!=', False),
+    ])
+    for record in due:
+        record.activity_schedule(
+            'x_gov_violations.mail_activity_type_objection_deadline',
+            date_deadline=record.x_objection_deadline,
+            summary='موعد الاعتراض يقترب',
+            note='آخر موعد للاعتراض على المخالفة %s هو %s' % (record.x_name, record.x_objection_deadline),
+            user_id=record.x_user_id.id,
+        )
+    due.write({'x_reminder_sent': True})
+]]></field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 00:30:00')"/>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

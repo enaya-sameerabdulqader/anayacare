@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="default_violation_active" model="ir.default">
+        <field name="field_id" ref="field_x_gov_violation__x_active"/>
+        <field name="json_value">true</field>
+    </record>
+    <record id="default_violation_status" model="ir.default">
+        <field name="field_id" ref="field_x_gov_violation__x_status"/>
+        <field name="json_value">"unpaid"</field>
+    </record>
+    <record id="default_violation_source" model="ir.default">
+        <field name="field_id" ref="field_x_gov_violation__x_source"/>
+        <field name="json_value">"manual"</field>
+    </record>
+    <record id="default_violation_objection_allowed" model="ir.default">
+        <field name="field_id" ref="field_x_gov_violation__x_objection_allowed"/>
+        <field name="json_value">true</field>
+    </record>
+    <record id="default_violation_in_register" model="ir.default">
+        <field name="field_id" ref="field_x_gov_violation__x_in_register"/>
+        <field name="json_value">true</field>
+    </record>
+    <record id="default_violation_company" model="ir.default">
+        <field name="field_id" ref="field_x_gov_violation__x_company_id"/>
+        <field name="json_value" eval="str(ref('base.main_company'))"/>
+    </record>
+    <record id="default_category_active" model="ir.default">
+        <field name="field_id" ref="field_x_gov_violation_category__x_active"/>
+        <field name="json_value">true</field>
+    </record>
+    <record id="default_license_active" model="ir.default">
+        <field name="field_id" ref="field_x_gov_license_map__x_active"/>
+        <field name="json_value">true</field>
+    </record>
+</odoo>
