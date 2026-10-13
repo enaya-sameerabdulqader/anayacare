@@ -1,6 +1,6 @@
 {
     'name': 'سجل المخالفات الحكومية',
-    'version': '19.0.1.1.0',
+    'version': '19.0.1.2.0',
     'category': 'Productivity',
     'summary': 'Government violations register (labor / municipality / other), '
                'Balady import, EW / EM split, objection tracking',

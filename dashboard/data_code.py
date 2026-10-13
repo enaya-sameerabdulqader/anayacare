@@ -1,7 +1,8 @@
 # Webapp-level loader (mcp.webapp.data_code) for the gov-violations dashboard.
 # Runs on every app load: logs the visit, then returns every violation with
 # the objection window computed live from today's date (Riyadh time).
-# Records are read with sudo but only for the users the app is shared with.
+# Records are read with sudo but only for users the app is shared with
+# (shared users, or members of the shared groups - set from the user form).
 st = env['mcp.webapp.user.storage'].sudo()
 rec = st.search([('webapp_id', '=', mcp_webapp_id), ('user_id', '=', uid)], limit=1)
 store = dict(rec.data or {}) if rec else {}
@@ -14,7 +15,8 @@ else:
     st.create({'webapp_id': mcp_webapp_id, 'user_id': uid, 'data': store})
 
 app = env['mcp.webapp'].sudo().browse(mcp_webapp_id)
-if uid not in app.shared_user_ids.ids:
+allowed = uid in app.shared_user_ids.ids or bool(app.shared_group_ids & user.sudo().all_group_ids)
+if not allowed:
     result = {'denied': True, 'user': user.name}
 else:
     now = datetime.datetime.now() + timedelta(hours=3)

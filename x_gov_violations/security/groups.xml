@@ -1,15 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="privilege_gov_violation" model="res.groups.privilege">
+    <!-- Own section on the user form (Access Rights tab) -->
+    <record id="category_gov_violations" model="ir.module.category">
         <field name="name">المخالفات الحكومية</field>
-        <field name="sequence">100</field>
-        <field name="category_id" ref="base.module_category_productivity"/>
+        <field name="sequence">95</field>
+    </record>
+
+    <record id="privilege_gov_violation" model="res.groups.privilege">
+        <field name="name">التطبيق</field>
+        <field name="sequence">10</field>
+        <field name="category_id" ref="category_gov_violations"/>
+        <field name="placeholder">بدون صلاحية</field>
+    </record>
+    <record id="privilege_gov_dashboard" model="res.groups.privilege">
+        <field name="name">لوحة المخالفات</field>
+        <field name="sequence">20</field>
+        <field name="category_id" ref="category_gov_violations"/>
+        <field name="placeholder">بدون صلاحية</field>
+        <field name="description">عرض لوحة المخالفات التنفيذية (Web Applications)</field>
+    </record>
+
+    <record id="group_gov_violation_dashboard" model="res.groups">
+        <field name="name">عرض اللوحة</field>
+        <field name="sequence">10</field>
+        <field name="privilege_id" ref="privilege_gov_dashboard"/>
+        <field name="implied_ids" eval="[Command.link(ref('base.group_user'))]"/>
     </record>
     <record id="group_gov_violation_user" model="res.groups">
         <field name="name">مستخدم</field>
         <field name="sequence">10</field>
         <field name="privilege_id" ref="privilege_gov_violation"/>
-        <field name="implied_ids" eval="[Command.link(ref('base.group_user'))]"/>
+        <field name="implied_ids" eval="[Command.link(ref('base.group_user')), Command.link(ref('group_gov_violation_dashboard'))]"/>
     </record>
     <record id="group_gov_violation_manager" model="res.groups">
         <field name="name">مدير</field>

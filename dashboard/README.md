@@ -10,4 +10,4 @@ Source of the `gov-violations` web app on the Odoo database (React, Arabic RTL).
 | `styles.css` | `mcp.webapp.shared_styles` |
 | `visitors_endpoint.py` | endpoint `visitors` (GET) |
 
-Access: `shared_user_ids` only; the loader returns no data to anyone else.
+Access: `shared_user_ids` or `shared_group_ids` (group "لوحة المخالفات / عرض اللوحة", set on the user form); the loader returns no data to anyone else.
