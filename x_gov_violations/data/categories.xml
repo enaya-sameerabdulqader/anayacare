@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="cat_cancelled_license" model="x_gov_violation_category">
+        <field name="x_name">التشغيل برخصة ملغاة</field>
+        <field name="x_sequence">10</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">ملغاة,ملغيه,ملغية,ملغاه</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_health_cert" model="x_gov_violation_category">
+        <field name="x_name">الشهادة الصحية</field>
+        <field name="x_sequence">20</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">صحي,شهاد,شهايد,كرت,كروت</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_qr" model="x_gov_violation_category">
+        <field name="x_name">رمز QR للرخصة</field>
+        <field name="x_sequence">30</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">QR,الرمز الموحد,الرمز الالكتروني,الرمز الإلكتروني,الباركود</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_license" model="x_gov_violation_category">
+        <field name="x_name">الرخصة والنشاط</field>
+        <field name="x_sequence">40</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">رخص,ترخيص,مزاولة النشاط</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_waste" model="x_gov_violation_category">
+        <field name="x_name">تصريف المواد المنتهية</field>
+        <field name="x_sequence">50</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">منتهية الصلاحية,التخلص,الاستخدام الواحد</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_uniform" model="x_gov_violation_category">
+        <field name="x_name">الزي الرسمي</field>
+        <field name="x_sequence">60</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">الزي الرسمي,الزي,الزى</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_devices" model="x_gov_violation_category">
+        <field name="x_name">الأجهزة والمنتجات</field>
+        <field name="x_sequence">70</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">جهاز,اجهزة,أجهزة,منتج,ادعاء طبي</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_signs" model="x_gov_violation_category">
+        <field name="x_name">اشتراطات اللوحات</field>
+        <field name="x_sequence">80</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">لوحة,لوحه,اللوحات,ملصقات</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_premises" model="x_gov_violation_category">
+        <field name="x_name">المبنى والنظافة</field>
+        <field name="x_sequence">15</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">الصرف,المبنى والتجهيزات,تجهيزات</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_staff" model="x_gov_violation_category">
+        <field name="x_name">مخالفات العاملين</field>
+        <field name="x_sequence">100</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">مخالفات العاملين</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_public_hygiene" model="x_gov_violation_category">
+        <field name="x_name">النظافة العامة</field>
+        <field name="x_sequence">110</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">النظافة العامة</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_visual" model="x_gov_violation_category">
+        <field name="x_name">التشوه البصري</field>
+        <field name="x_sequence">120</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">التشوه البصري</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_parking" model="x_gov_violation_category">
+        <field name="x_name">الرقابة على مواقف السيارات</field>
+        <field name="x_sequence">130</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">مواقف السيارات</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_general" model="x_gov_violation_category">
+        <field name="x_name">المخالفات العامة</field>
+        <field name="x_sequence">140</field>
+        <field name="x_authority">municipality</field>
+        <field name="x_keywords">المخالفات العامة</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_ajeer" model="x_gov_violation_category">
+        <field name="x_name">إشعار أجير</field>
+        <field name="x_sequence">150</field>
+        <field name="x_authority">labor</field>
+        <field name="x_keywords">أجير</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_saudization" model="x_gov_violation_category">
+        <field name="x_name">مهن مقصورة على السعوديين</field>
+        <field name="x_sequence">160</field>
+        <field name="x_authority">labor</field>
+        <field name="x_keywords">مقصورة على السعوديين</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_labor_other" model="x_gov_violation_category">
+        <field name="x_name">مكتب العمل - أخرى</field>
+        <field name="x_sequence">170</field>
+        <field name="x_authority">labor</field>
+        <field name="x_active" eval="True"/>
+    </record>
+    <record id="cat_other" model="x_gov_violation_category">
+        <field name="x_name">أخرى / غير محدد</field>
+        <field name="x_sequence">180</field>
+        <field name="x_active" eval="True"/>
+    </record>
+</odoo>

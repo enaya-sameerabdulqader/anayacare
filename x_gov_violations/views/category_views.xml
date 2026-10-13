@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_category_list" model="ir.ui.view">
+        <field name="name">x_gov_violation_category.list</field>
+        <field name="model">x_gov_violation_category</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="x_sequence" widget="handle"/>
+                <field name="x_name"/>
+                <field name="x_authority"/>
+                <field name="x_keywords"/>
+                <field name="x_active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_category" model="ir.actions.act_window">
+        <field name="name">التصنيفات</field>
+        <field name="res_model">x_gov_violation_category</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'default_x_active': True}</field>
+    </record>
+</odoo>

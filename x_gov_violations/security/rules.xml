@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="rule_x_gov_violation_company" model="ir.rule">
+        <field name="name">المخالفات الحكومية: الشركات المسموحة</field>
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="domain_force">[('x_company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>

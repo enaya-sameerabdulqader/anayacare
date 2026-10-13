@@ -1,0 +1,10 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_gov_violation_user,gov.violation user,model_gov_violation,group_gov_violation_user,1,1,1,0
+access_gov_violation_manager,gov.violation manager,model_gov_violation,group_gov_violation_manager,1,1,1,1
+access_gov_violation_category_user,gov.violation.category user,model_gov_violation_category,group_gov_violation_user,1,0,0,0
+access_gov_violation_category_manager,gov.violation.category manager,model_gov_violation_category,group_gov_violation_manager,1,1,1,1
+access_gov_license_map_user,gov.license.map user,model_gov_license_map,group_gov_violation_user,1,0,0,0
+access_gov_license_map_manager,gov.license.map manager,model_gov_license_map,group_gov_violation_manager,1,1,1,1
+access_gov_violation_import_manager,gov.violation.import manager,model_gov_violation_import,group_gov_violation_manager,1,1,1,1
+access_analytic_account_gov_violation_user,account.analytic.account gov violation user,analytic.model_account_analytic_account,group_gov_violation_user,1,0,0,0
+access_analytic_plan_gov_violation_user,account.analytic.plan gov violation user,analytic.model_account_analytic_plan,group_gov_violation_user,1,0,0,0

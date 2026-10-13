@@ -1,0 +1,22 @@
+{
+ "companies": {
+  "<company name in the unified list>": "<res.company name>"
+ },
+ "default_company": "Enaya Care",
+ "hotels_company": "Sustainable",
+ "branches": {
+  "<branch name in the unified list>": "<analytic account name, or null for no branch>"
+ },
+ "licenses": {
+  "<municipal license / unified number>": "<analytic account name, or null>"
+ },
+ "hotel_licenses": [
+  "<license of the hotels company>"
+ ],
+ "no_number_unpaid": {
+  "<amount>": [
+   "<real violation number>",
+   "..."
+  ]
+ }
+}

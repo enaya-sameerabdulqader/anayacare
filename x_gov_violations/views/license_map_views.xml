@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_license_map_list" model="ir.ui.view">
+        <field name="name">x_gov_license_map.list</field>
+        <field name="model">x_gov_license_map</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" decoration-warning="not x_is_mapped">
+                <header>
+                    <button name="%(x_gov_violations.action_apply_license_map)d" type="action"
+                            string="تطبيق الربط على المخالفات"/>
+                </header>
+                <field name="x_name"/>
+                <field name="x_company_id" options="{'no_create': True}"/>
+                <field name="x_branch_id" options="{'no_create': True}"
+                       domain="[('plan_id.name', '=', 'Location')]"/>
+                <field name="x_facility_name"/>
+                <field name="x_inferred"/>
+                <field name="x_note" optional="show"/>
+                <field name="x_is_mapped" optional="hide"/>
+                <field name="x_active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_license_map_search" model="ir.ui.view">
+        <field name="name">x_gov_license_map.search</field>
+        <field name="model">x_gov_license_map</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="x_name"/>
+                <field name="x_facility_name"/>
+                <field name="x_branch_id"/>
+                <filter name="unmapped" string="غير مربوط بفرع" domain="[('x_is_mapped', '=', False)]"/>
+                <filter name="inferred" string="ربط استنتاجي" domain="[('x_inferred', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+    <record id="action_license_map" model="ir.actions.act_window">
+        <field name="name">ربط التراخيص بالفروع</field>
+        <field name="res_model">x_gov_license_map</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="view_license_map_search"/>
+        <field name="context">{'default_x_active': True}</field>
+    </record>
+</odoo>

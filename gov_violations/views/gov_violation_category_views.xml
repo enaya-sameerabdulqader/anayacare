@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="gov_violation_category_view_list" model="ir.ui.view">
+        <field name="name">gov.violation.category.list</field>
+        <field name="model">gov.violation.category</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="authority"/>
+                <field name="keywords" optional="show"/>
+                <field name="violation_count"/>
+                <button name="action_view_violations" type="object" string="المخالفات"
+                        icon="fa-list" class="btn-link"/>
+                <field name="active" column_invisible="True"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="gov_violation_category_view_search" model="ir.ui.view">
+        <field name="name">gov.violation.category.search</field>
+        <field name="model">gov.violation.category</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="labor" string="مكتب العمل" domain="[('authority', '=', 'labor')]"/>
+                <filter name="municipality" string="البلدية" domain="[('authority', '=', 'municipality')]"/>
+                <separator/>
+                <filter name="archived" string="مؤرشف" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter name="group_authority" string="الجهة" context="{'group_by': 'authority'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_gov_violation_category" model="ir.actions.act_window">
+        <field name="name">التصنيفات</field>
+        <field name="res_model">gov.violation.category</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="gov_violation_category_view_search"/>
+    </record>
+</odoo>

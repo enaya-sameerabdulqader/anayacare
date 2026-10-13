@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="import_mapping_x_name" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">رقم المخالفة</field>
+        <field name="field_name">x_name</field>
+    </record>
+    <record id="import_mapping_x_violation_date" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">تاريخ رصد المخالفة</field>
+        <field name="field_name">x_violation_date</field>
+    </record>
+    <record id="import_mapping_x_license" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">رقم الترخيص البلدي / رقم الهوية</field>
+        <field name="field_name">x_license</field>
+    </record>
+    <record id="import_mapping_x_license_type" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">نوع الترخيص البلدي</field>
+        <field name="field_name">x_license_type</field>
+    </record>
+    <record id="import_mapping_x_municipality" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">الأمانة / البلدية</field>
+        <field name="field_name">x_municipality</field>
+    </record>
+    <record id="import_mapping_x_establishment" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">اسم المنشأة</field>
+        <field name="field_name">x_establishment</field>
+    </record>
+    <record id="import_mapping_x_clause" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">بند اللائحة</field>
+        <field name="field_name">x_clause</field>
+    </record>
+    <record id="import_mapping_x_repeat_count" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">عدد مرات تكرار المخالفة</field>
+        <field name="field_name">x_repeat_count</field>
+    </record>
+    <record id="import_mapping_x_units" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">عدد وحدات المخالفة</field>
+        <field name="field_name">x_units</field>
+    </record>
+    <record id="import_mapping_x_deadline" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">آخر موعد لتقديم الاعتراض</field>
+        <field name="field_name">x_deadline</field>
+    </record>
+    <record id="import_mapping_x_days_left_file" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">الأيام المتبقية للاعتراض</field>
+        <field name="field_name">x_days_left_file</field>
+    </record>
+    <record id="import_mapping_x_amount" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">قيمة الغرامة (ر.س)</field>
+        <field name="field_name">x_amount</field>
+    </record>
+    <record id="import_mapping_x_invoice" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">رقم الفاتورة</field>
+        <field name="field_name">x_invoice</field>
+    </record>
+    <record id="import_mapping_x_invoice_status" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">حالة فاتورة المخالفة</field>
+        <field name="field_name">x_invoice_status</field>
+    </record>
+    <record id="import_mapping_x_main_item" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">بند المخالفة الرئيسي</field>
+        <field name="field_name">x_main_item</field>
+    </record>
+    <record id="import_mapping_x_inspector_note" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">ملاحظات المراقب</field>
+        <field name="field_name">x_inspector_note</field>
+    </record>
+    <record id="import_mapping_x_objection_ref" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">رقم طلب الاعتراض</field>
+        <field name="field_name">x_objection_ref</field>
+    </record>
+    <record id="import_mapping_x_objection_date" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">تاريخ طلب الاعتراض</field>
+        <field name="field_name">x_objection_date</field>
+    </record>
+    <record id="import_mapping_x_objection_status" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">حالة طلب الاعتراض</field>
+        <field name="field_name">x_objection_status</field>
+    </record>
+    <record id="import_mapping_x_decision" model="base_import.mapping">
+        <field name="res_model">x_gov_balady_line</field>
+        <field name="column_name">قرار لجنة الاعتراض</field>
+        <field name="field_name">x_decision</field>
+    </record>
+</odoo>

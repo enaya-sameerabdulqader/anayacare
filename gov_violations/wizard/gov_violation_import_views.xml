@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="gov_violation_import_view_form" model="ir.ui.view">
+        <field name="name">gov.violation.import.form</field>
+        <field name="model">gov.violation.import</field>
+        <field name="arch" type="xml">
+            <form string="استيراد ملف بلدي">
+                <field name="state" invisible="1"/>
+                <div invisible="state != 'draft'">
+                    <p>
+                        ارفع ملف بلدي بنفس ترتيب الأعمدة العشرين (يمكن تحميل القالب).
+                        يتم التحديث حسب رقم المخالفة: الموجودة تُحدَّث والجديدة تُضاف.
+                        الشركة والفرع يُحددان من جدول ربط التراخيص.
+                    </p>
+                    <group>
+                        <field name="file" filename="filename"/>
+                        <field name="filename" invisible="1"/>
+                        <field name="full_register"/>
+                    </group>
+                </div>
+                <div invisible="state != 'done'">
+                    <field name="result" nolabel="1"/>
+                </div>
+                <footer>
+                    <button name="action_import" type="object" string="استيراد"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_download_template" type="object" string="تحميل القالب"
+                            invisible="state != 'draft'"/>
+                    <button name="action_open_violations" type="object" string="عرض المخالفات"
+                            class="btn-primary" invisible="state != 'done'"/>
+                    <button string="إغلاق" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_gov_violation_import" model="ir.actions.act_window">
+        <field name="name">استيراد ملف بلدي</field>
+        <field name="res_model">gov.violation.import</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

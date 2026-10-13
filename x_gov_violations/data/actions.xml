@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ==============================================================
+         Balady import: lines imported with the standard Odoo import
+         (columns = the 20 Balady headers) are merged into the register.
+         Upsert by violation number; Balady wins for its own fields;
+         company / branch from the license map; a payment recorded in
+         Odoo is never reverted (flagged instead). The "full register"
+         variant flags unpaid municipal violations missing from the file
+         and takes them out of exposure (never deleted or marked paid).
+         ============================================================== -->
+    <record id="action_process_balady_full" model="ir.actions.server">
+        <field name="name">معالجة ملف بلدي (سجل كامل)</field>
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="binding_model_id" ref="model_x_gov_balady_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="group_ids" eval="[Command.link(ref('group_gov_violation_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+FULL_REGISTER = True
+action = env.ref('x_gov_violations.action_process_balady_core').with_context(
+    gov_full_register=FULL_REGISTER, active_model='x_gov_balady_line',
+    active_ids=(records or model.search([])).ids).run()
+]]></field>
+    </record>
+
+    <record id="action_process_balady_append" model="ir.actions.server">
+        <field name="name">معالجة ملف بلدي (إضافة فقط)</field>
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="binding_model_id" ref="model_x_gov_balady_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="group_ids" eval="[Command.link(ref('group_gov_violation_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+FULL_REGISTER = False
+action = env.ref('x_gov_violations.action_process_balady_core').with_context(
+    gov_full_register=FULL_REGISTER, active_model='x_gov_balady_line',
+    active_ids=(records or model.search([])).ids).run()
+]]></field>
+    </record>
+
+    <record id="action_process_balady_core" model="ir.actions.server">
+        <field name="name">معالجة سطور بلدي (داخلي)</field>
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="group_ids" eval="[Command.link(ref('group_gov_violation_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+FULL_REGISTER = env.context.get('gov_full_register', True)
+Violation = env['x_gov_violation'].with_context(active_test=False)
+LicenseMap = env['x_gov_license_map'].with_context(active_test=False)
+Category = env['x_gov_violation_category']
+main_company = env.ref('base.main_company')
+lines = records
+STATUS = {'غير مسددة': 'unpaid', 'مسددة': 'paid', 'ملغية': 'cancelled', 'ملغاة': 'cancelled'}
+STATUS_LABEL = {'unpaid': 'غير مسددة', 'paid': 'مسددة', 'cancelled': 'ملغية', 'linked': 'مرتبطة بدون غرامة'}
+R_NOT_IN = 'غير موجودة في آخر ملف بلدي - تحقق من السداد أو الإلغاء'
+R_UNMAPPED = 'الترخيص غير مربوط بفرع'
+R_CONFLICT = 'بلدي يظهرها غير مسددة بينما حالتها في النظام'
+
+def add_reason(current, reason):
+    items = [x for x in (current or '').split('\n') if x.strip()]
+    if reason not in items:
+        items.append(reason)
+    return '\n'.join(items)
+
+def remove_reason(current, reason):
+    items = [x for x in (current or '').split('\n') if x.strip() and not x.startswith(reason)]
+    return '\n'.join(items)
+
+def empty_item(text):
+    return not text or all(c in '0123456789 |' for c in text)
+
+categories = Category.search([('x_keywords', '!=', False)], order='x_sequence, id')
+fallback = Category.search([('x_name', '=', 'أخرى / غير محدد')], limit=1)
+
+def guess(authority, texts):
+    for text in texts:
+        if empty_item(text):
+            continue
+        low = text.casefold()
+        for cat in categories:
+            if cat.x_authority and cat.x_authority != authority:
+                continue
+            for key in cat.x_keywords.split(','):
+                key = key.strip()
+                if key and key.casefold() in low:
+                    return cat
+    return fallback
+
+if lines and not any(lines.mapped('x_license')):
+    raise UserError('عمود "رقم الترخيص البلدي / رقم الهوية" فارغ في كل السطور - تأكد من ربط الأعمدة عند الاستيراد.')
+if lines and not any(lines.mapped('x_amount')):
+    raise UserError('عمود "قيمة الغرامة" فارغ في كل السطور - تأكد من ربط الأعمدة عند الاستيراد.')
+# Balady wins wherever it has data: an empty cell never clears a known value.
+KEEP_IF_EMPTY = ['x_violation_date', 'x_municipal_license', 'x_license_type', 'x_municipality',
+                 'x_establishment', 'x_regulation_clause', 'x_repeat_count', 'x_units',
+                 'x_objection_deadline', 'x_invoice_number', 'x_main_item', 'x_inspector_note',
+                 'x_objection_ref', 'x_objection_status_text', 'x_committee_decision']
+
+names = set()
+created = 0
+updated = 0
+new_licenses = []
+for line in lines:
+    name = (line.x_name or '').strip()
+    if not name:
+        continue
+    names.add(name)
+    existing = Violation.search([('x_name', '=', name)], limit=1)
+    status = STATUS.get((line.x_invoice_status or '').strip(), 'unpaid')
+    vals = {
+        'x_name': name,
+        'x_authority': 'municipality',
+        'x_source': 'balady',
+        'x_in_register': True,
+        'x_violation_date': line.x_violation_date,
+        'x_municipal_license': line.x_license,
+        'x_license_type': line.x_license_type,
+        'x_municipality': line.x_municipality,
+        'x_establishment': line.x_establishment,
+        'x_regulation_clause': line.x_clause,
+        'x_repeat_count': line.x_repeat_count,
+        'x_units': line.x_units,
+        'x_objection_deadline': line.x_deadline,
+        'x_deadline_suggested': False,
+        'x_amount': line.x_amount,
+        'x_invoice_number': line.x_invoice,
+        'x_status': status,
+        'x_main_item': False if empty_item(line.x_main_item) else line.x_main_item,
+        'x_inspector_note': line.x_inspector_note,
+        'x_objection_ref': line.x_objection_ref,
+        'x_objection_status_text': line.x_objection_status,
+        'x_committee_decision': line.x_decision,
+    }
+    if line.x_objection_ref or line.x_decision:
+        decision = line.x_decision or ''
+        vals['x_objection_filed'] = True
+        vals['x_objection_filed_date'] = line.x_objection_date
+        if 'رفض' in decision:
+            vals['x_objection_outcome'] = 'rejected'
+        elif 'قبول' in decision or 'قبل' in decision:
+            vals['x_objection_outcome'] = 'accepted'
+        else:
+            vals['x_objection_outcome'] = 'pending'
+    if existing:
+        for key in KEEP_IF_EMPTY:
+            if not vals.get(key) and existing[key]:
+                vals.pop(key)
+    reasons = []
+    if existing and existing.x_status in ('paid', 'cancelled', 'linked') and status == 'unpaid':
+        vals.pop('x_status')
+        reasons.append(R_CONFLICT + ' (' + STATUS_LABEL[existing.x_status] + ')')
+    license_no = line.x_license
+    mapping = LicenseMap.search([('x_name', '=', license_no)], limit=1) if license_no else LicenseMap.browse()
+    if license_no and not mapping:
+        mapping = LicenseMap.create({'x_name': license_no, 'x_facility_name': line.x_establishment, 'x_active': True})
+        new_licenses.append(license_no)
+    if mapping.x_company_id:
+        vals['x_company_id'] = mapping.x_company_id.id
+    elif not existing:
+        vals['x_company_id'] = main_company.id
+    if mapping.x_branch_id:
+        vals['x_branch_id'] = mapping.x_branch_id.id
+    elif not existing.x_branch_id and not mapping.x_is_mapped:
+        reasons.append(R_UNMAPPED + (': ' + license_no if license_no else ''))
+    if not existing.x_description and line.x_inspector_note:
+        vals['x_description'] = line.x_inspector_note
+    if not existing.x_category_id:
+        vals['x_category_id'] = guess('municipality', [line.x_inspector_note, line.x_main_item]).id
+    review = existing.x_review_reason or ''
+    if R_NOT_IN in review:
+        review = remove_reason(review, R_NOT_IN)
+        vals['x_needs_review'] = bool(review)
+    for reason in reasons:
+        review = add_reason(review, reason)
+    if reasons:
+        vals['x_needs_review'] = True
+    vals['x_review_reason'] = review or False
+    if existing:
+        existing.write(vals)
+        updated += 1
+    else:
+        vals['x_active'] = True
+        vals['x_objection_allowed'] = True
+        Violation.create(vals)
+        created += 1
+
+missing = Violation.browse()
+if FULL_REGISTER and names:
+    missing = Violation.search([
+        ('x_authority', '=', 'municipality'),
+        ('x_status', '=', 'unpaid'),
+        ('x_name', 'not in', list(names)),
+    ])
+    for record in missing:
+        record.write({
+            'x_in_register': False,
+            'x_needs_review': True,
+            'x_review_reason': add_reason(record.x_review_reason, R_NOT_IN),
+        })
+lines.unlink()
+message = 'جديدة: %s | محدثة: %s' % (created, updated)
+if new_licenses:
+    message += ' | تراخيص جديدة بدون فرع: ' + ', '.join(new_licenses)
+if missing:
+    message += ' | غير موجودة في الملف (تحتاج تأكيد): ' + ', '.join(missing.mapped('x_name'))
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {'title': 'تمت معالجة ملف بلدي', 'message': message, 'sticky': True, 'type': 'success',
+               'next': {'type': 'ir.actions.act_window_close'}},
+}
+]]></field>
+    </record>
+
+    <!-- ==============================================================
+         Violation actions (form buttons)
+         ============================================================== -->
+    <record id="action_mark_paid" model="ir.actions.server">
+        <field name="name">تسجيل السداد</field>
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="binding_model_id" ref="model_x_gov_violation"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+today = datetime.date.today()
+for record in records.filtered(lambda v: v.x_status == 'unpaid'):
+    record.write({'x_status': 'paid', 'x_paid_date': record.x_paid_date or today})
+]]></field>
+    </record>
+
+    <record id="action_cancel" model="ir.actions.server">
+        <field name="name">إلغاء المخالفة</field>
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="group_ids" eval="[Command.link(ref('group_gov_violation_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+records.filtered(lambda v: v.x_status == 'unpaid').write({'x_status': 'cancelled'})
+]]></field>
+    </record>
+
+    <record id="action_reset_unpaid" model="ir.actions.server">
+        <field name="name">إعادة إلى غير مسددة</field>
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="group_ids" eval="[Command.link(ref('group_gov_violation_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+records.filtered(lambda v: v.x_status != 'unpaid').write({'x_status': 'unpaid', 'x_paid_date': False})
+]]></field>
+    </record>
+
+    <record id="action_confirm_review" model="ir.actions.server">
+        <field name="name">تأكيد المراجعة</field>
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="binding_model_id" ref="model_x_gov_violation"/>
+        <field name="group_ids" eval="[Command.link(ref('group_gov_violation_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+records.write({'x_needs_review': False, 'x_review_reason': False})
+]]></field>
+    </record>
+
+    <record id="action_apply_license_map" model="ir.actions.server">
+        <field name="name">تطبيق الربط على المخالفات</field>
+        <field name="model_id" ref="model_x_gov_license_map"/>
+        <field name="binding_model_id" ref="model_x_gov_license_map"/>
+        <field name="binding_view_types">list</field>
+        <field name="group_ids" eval="[Command.link(ref('group_gov_violation_manager'))]"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+R_UNMAPPED = 'الترخيص غير مربوط بفرع'
+Violation = env['x_gov_violation'].with_context(active_test=False)
+count = 0
+for mapping in records.filtered(lambda m: m.x_is_mapped):
+    for record in Violation.search([('x_municipal_license', '=', mapping.x_name)]):
+        vals = {'x_branch_id': mapping.x_branch_id.id}
+        if mapping.x_company_id:
+            vals['x_company_id'] = mapping.x_company_id.id
+        rest = '\n'.join([x for x in (record.x_review_reason or '').split('\n')
+                          if x.strip() and not x.startswith(R_UNMAPPED)])
+        vals['x_review_reason'] = rest or False
+        vals['x_needs_review'] = bool(rest)
+        record.write(vals)
+        count += 1
+action = {'type': 'ir.actions.client', 'tag': 'display_notification',
+          'params': {'title': 'ربط التراخيص', 'message': 'تم تحديث %s مخالفة' % count, 'type': 'success'}}
+]]></field>
+    </record>
+
+    <!-- ==============================================================
+         Vendor bill from an unpaid violation. Vendor: system parameter
+         x_gov_violations.vendor_company_<company id> (partner id), else a
+         vendor named "Government Payments" of the violation's company.
+         Account by authority (4015201 / 4015202 / 4015203), branch as
+         analytic distribution, no taxes, bill date = violation date.
+         The bill is created in draft and linked on the violation.
+         ============================================================== -->
+    <record id="action_create_bill" model="ir.actions.server">
+        <field name="name">إنشاء فاتورة مورد</field>
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="binding_model_id" ref="model_x_gov_violation"/>
+        <field name="group_ids" eval="[Command.link(ref('account.group_account_invoice'))]"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+ICP = env['ir.config_parameter'].sudo()
+CODES = {'municipality': '4015201', 'labor': '4015202', 'other': '4015203'}
+bills = env['account.move']
+skipped = []
+for v in records:
+    if v.x_status != 'unpaid':
+        skipped.append(v.x_name + ': ليست غير مسددة')
+        continue
+    if v.x_bill_id and v.x_bill_id.state != 'cancel':
+        skipped.append(v.x_name + ': لها فاتورة مورد مسبقاً')
+        continue
+    if not v.x_amount:
+        skipped.append(v.x_name + ': بدون مبلغ')
+        continue
+    company = v.x_company_id
+    partner = env['res.partner']
+    param = ICP.get_param('x_gov_violations.vendor_company_%d' % company.id)
+    if param:
+        partner = env['res.partner'].browse(int(param)).exists()
+    if not partner:
+        partner = env['res.partner'].search([('name', '=', 'Government Payments'), ('company_id', 'in', [company.id, False])], limit=1)
+    if not partner:
+        raise UserError('لا يوجد مورد مخالفات للشركة %s. أنشئ مورداً باسم Government Payments لهذه الشركة أو حدّد المعامل x_gov_violations.vendor_company_%d.' % (company.name, company.id))
+    account = env['account.account'].with_company(company).search([('code', '=', CODES.get(v.x_authority, '4015203')), ('company_ids', 'in', company.id)], limit=1)
+    if not account:
+        raise UserError('لا يوجد حساب %s في شركة %s.' % (CODES.get(v.x_authority), company.name))
+    journal = env['account.journal'].search([('type', '=', 'purchase'), ('company_id', '=', company.id)], limit=1)
+    label = 'مخالفة %s' % v.x_name
+    if v.x_category_id:
+        label += ' - ' + v.x_category_id.x_name
+    if v.x_branch_id:
+        label += ' - ' + v.x_branch_id.name
+    line = {'name': label, 'account_id': account.id, 'quantity': 1, 'price_unit': v.x_amount, 'tax_ids': [Command.clear()]}
+    if v.x_branch_id:
+        line['analytic_distribution'] = {str(v.x_branch_id.id): 100}
+    note = []
+    if v.x_municipal_license:
+        note.append('الترخيص: ' + v.x_municipal_license)
+    if v.x_invoice_number:
+        note.append('رقم فاتورة بلدي: ' + v.x_invoice_number)
+    if v.x_sadad_number:
+        note.append('رقم السداد: ' + v.x_sadad_number)
+    if v.x_description:
+        note.append(v.x_description)
+    bill = env['account.move'].with_company(company).create({
+        'move_type': 'in_invoice',
+        'partner_id': partner.id,
+        'journal_id': journal.id,
+        'company_id': company.id,
+        'invoice_date': v.x_violation_date or datetime.date.today(),
+        'ref': v.x_name,
+        'payment_reference': v.x_invoice_number or v.x_sadad_number or v.x_name,
+        'narration': '\n'.join(note),
+        'invoice_line_ids': [Command.create(line)],
+    })
+    v.write({'x_bill_id': bill.id})
+    v.message_post(body='تم إنشاء فاتورة مورد (مسودة) للمخالفة بمبلغ %s ريال.' % v.x_amount)
+    bills |= bill
+if len(bills) == 1:
+    action = {'type': 'ir.actions.act_window', 'res_model': 'account.move', 'res_id': bills.id,
+              'view_mode': 'form', 'views': [[False, 'form']], 'target': 'current'}
+elif bills:
+    action = {'type': 'ir.actions.act_window', 'name': 'فواتير المخالفات', 'res_model': 'account.move',
+              'domain': [('id', 'in', bills.ids)], 'view_mode': 'list,form', 'views': [[False, 'list'], [False, 'form']]}
+else:
+    action = {'type': 'ir.actions.client', 'tag': 'display_notification',
+              'params': {'title': 'لم يتم إنشاء فواتير', 'message': ' | '.join(skipped) or 'لا توجد مخالفات مناسبة', 'type': 'warning', 'sticky': True}}
+]]></field>
+    </record>
+
+    <!-- Mark violations paid when their vendor bill is paid (also run daily by the cron). -->
+    <record id="action_sync_bill_payment" model="ir.actions.server">
+        <field name="name">مزامنة السداد من فواتير المورد</field>
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="binding_model_id" ref="model_x_gov_violation"/>
+        <field name="state">code</field>
+        <field name="code"><![CDATA[
+V = env['x_gov_violation'].with_context(active_test=False)
+todo = V.search([('x_status', '=', 'unpaid'), ('x_bill_id', '!=', False),
+                 ('x_bill_id.state', '=', 'posted'), ('x_bill_id.payment_state', 'in', ['paid', 'in_payment'])])
+for v in todo:
+    v.write({'x_status': 'paid', 'x_paid_date': v.x_paid_date or datetime.date.today()})
+    v.message_post(body='تم تسجيل السداد تلقائياً من فاتورة المورد %s.' % v.x_bill_id.name)
+action = {'type': 'ir.actions.client', 'tag': 'display_notification',
+          'params': {'title': 'مزامنة السداد', 'message': 'تم تحديث %s مخالفة إلى مسددة' % len(todo), 'type': 'success'}}
+]]></field>
+    </record>
+</odoo>

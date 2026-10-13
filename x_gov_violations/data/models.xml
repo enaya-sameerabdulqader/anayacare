@@ -1,0 +1,653 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="model_x_gov_violation_category" model="ir.model">
+        <field name="name">تصنيف المخالفة</field>
+        <field name="model">x_gov_violation_category</field>
+    </record>
+    <record id="model_x_gov_license_map" model="ir.model">
+        <field name="name">ربط الترخيص بالفرع</field>
+        <field name="model">x_gov_license_map</field>
+    </record>
+    <record id="model_x_gov_violation" model="ir.model">
+        <field name="name">مخالفة حكومية</field>
+        <field name="model">x_gov_violation</field>
+        <field name="is_mail_thread" eval="True"/>
+        <field name="is_mail_activity" eval="True"/>
+    </record>
+    <record id="model_x_gov_balady_line" model="ir.model">
+        <field name="name">سطر ملف بلدي</field>
+        <field name="model">x_gov_balady_line</field>
+    </record>
+    <record id="field_x_gov_violation_category__x_name" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation_category"/>
+        <field name="name">x_name</field>
+        <field name="field_description">التصنيف</field>
+        <field name="ttype">char</field>
+        <field name="required" eval="True"/>
+    </record>
+    <record id="field_x_gov_violation_category__x_sequence" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation_category"/>
+        <field name="name">x_sequence</field>
+        <field name="field_description">التسلسل</field>
+        <field name="ttype">integer</field>
+    </record>
+    <record id="field_x_gov_violation_category__x_active" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation_category"/>
+        <field name="name">x_active</field>
+        <field name="field_description">نشط</field>
+        <field name="ttype">boolean</field>
+    </record>
+    <record id="field_x_gov_violation_category__x_authority" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation_category"/>
+        <field name="name">x_authority</field>
+        <field name="field_description">الجهة</field>
+        <field name="ttype">selection</field>
+        <field name="selection">[('labor','مكتب العمل'),('municipality','البلدية'),('other','جهة أخرى')]</field>
+    </record>
+    <record id="field_x_gov_violation_category__x_keywords" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation_category"/>
+        <field name="name">x_keywords</field>
+        <field name="field_description">كلمات مفتاحية</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_license_map__x_name" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_license_map"/>
+        <field name="name">x_name</field>
+        <field name="field_description">رقم الترخيص البلدي / الهوية</field>
+        <field name="ttype">char</field>
+        <field name="required" eval="True"/>
+        <field name="index" eval="True"/>
+    </record>
+    <record id="field_x_gov_license_map__x_company_id" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_license_map"/>
+        <field name="name">x_company_id</field>
+        <field name="field_description">الشركة</field>
+        <field name="ttype">many2one</field>
+        <field name="relation">res.company</field>
+        <field name="on_delete">set null</field>
+    </record>
+    <record id="field_x_gov_license_map__x_branch_id" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_license_map"/>
+        <field name="name">x_branch_id</field>
+        <field name="field_description">الفرع</field>
+        <field name="ttype">many2one</field>
+        <field name="relation">account.analytic.account</field>
+        <field name="on_delete">set null</field>
+    </record>
+    <record id="field_x_gov_license_map__x_facility_name" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_license_map"/>
+        <field name="name">x_facility_name</field>
+        <field name="field_description">اسم المنشأة</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_license_map__x_inferred" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_license_map"/>
+        <field name="name">x_inferred</field>
+        <field name="field_description">ربط استنتاجي</field>
+        <field name="ttype">boolean</field>
+    </record>
+    <record id="field_x_gov_license_map__x_note" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_license_map"/>
+        <field name="name">x_note</field>
+        <field name="field_description">ملاحظة</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_license_map__x_active" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_license_map"/>
+        <field name="name">x_active</field>
+        <field name="field_description">نشط</field>
+        <field name="ttype">boolean</field>
+    </record>
+    <record id="field_x_gov_license_map__x_is_mapped" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_license_map"/>
+        <field name="name">x_is_mapped</field>
+        <field name="field_description">مربوط</field>
+        <field name="ttype">boolean</field>
+        <field name="depends">x_branch_id,x_company_id</field>
+        <field name="compute"><![CDATA[for record in self:
+    record['x_is_mapped'] = bool(record.x_branch_id or 'sustainable' in (record.x_company_id.name or '').lower())]]></field>
+        <field name="store" eval="True"/>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="field_x_gov_violation__x_name" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_name</field>
+        <field name="field_description">رقم المخالفة</field>
+        <field name="ttype">char</field>
+        <field name="required" eval="True"/>
+        <field name="index" eval="True"/>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_active" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_active</field>
+        <field name="field_description">نشط</field>
+        <field name="ttype">boolean</field>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_authority" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_authority</field>
+        <field name="field_description">الجهة</field>
+        <field name="ttype">selection</field>
+        <field name="selection">[('labor','مكتب العمل'),('municipality','البلدية'),('other','جهة أخرى')]</field>
+        <field name="required" eval="True"/>
+        <field name="index" eval="True"/>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_source" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_source</field>
+        <field name="field_description">المصدر</field>
+        <field name="ttype">selection</field>
+        <field name="selection">[('balady','ملف بلدي'),('history','السجل الموحد (تاريخي)'),('manual','إدخال يدوي')]</field>
+    </record>
+    <record id="field_x_gov_violation__x_company_id" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_company_id</field>
+        <field name="field_description">الشركة</field>
+        <field name="ttype">many2one</field>
+        <field name="relation">res.company</field>
+        <field name="on_delete">restrict</field>
+        <field name="required" eval="True"/>
+        <field name="index" eval="True"/>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_branch_id" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_branch_id</field>
+        <field name="field_description">الفرع</field>
+        <field name="ttype">many2one</field>
+        <field name="relation">account.analytic.account</field>
+        <field name="on_delete">set null</field>
+        <field name="index" eval="True"/>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_category_id" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_category_id</field>
+        <field name="field_description">التصنيف</field>
+        <field name="ttype">many2one</field>
+        <field name="relation">x_gov_violation_category</field>
+        <field name="on_delete">restrict</field>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_violation_code" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_violation_code</field>
+        <field name="field_description">رمز المخالفة</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_violation__x_reason" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_reason</field>
+        <field name="field_description">سبب المخالفة</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_violation__x_description" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_description</field>
+        <field name="field_description">وصف المخالفة</field>
+        <field name="ttype">text</field>
+    </record>
+    <record id="field_x_gov_violation__x_violation_date" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_violation_date</field>
+        <field name="field_description">تاريخ المخالفة</field>
+        <field name="ttype">date</field>
+        <field name="index" eval="True"/>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_amount" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_amount</field>
+        <field name="field_description">قيمة الغرامة (ريال)</field>
+        <field name="ttype">float</field>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_status" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_status</field>
+        <field name="field_description">حالة السداد</field>
+        <field name="ttype">selection</field>
+        <field name="selection">[('unpaid','غير مسددة'),('paid','مسددة'),('cancelled','ملغية'),('linked','مرتبطة بدون غرامة')]</field>
+        <field name="required" eval="True"/>
+        <field name="index" eval="True"/>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_paid_date" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_paid_date</field>
+        <field name="field_description">تاريخ السداد</field>
+        <field name="ttype">date</field>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_sadad_number" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_sadad_number</field>
+        <field name="field_description">رقم السداد</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_violation__x_invoice_number" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_invoice_number</field>
+        <field name="field_description">رقم الفاتورة</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_violation__x_offender_ref" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_offender_ref</field>
+        <field name="field_description">رقم المخالف / هوية العامل</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_violation__x_objection_allowed" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_objection_allowed</field>
+        <field name="field_description">الاعتراض مسموح</field>
+        <field name="ttype">boolean</field>
+    </record>
+    <record id="field_x_gov_violation__x_objection_deadline" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_objection_deadline</field>
+        <field name="field_description">آخر موعد للاعتراض</field>
+        <field name="ttype">date</field>
+        <field name="index" eval="True"/>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_deadline_suggested" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_deadline_suggested</field>
+        <field name="field_description">موعد اعتراض مقترح</field>
+        <field name="ttype">boolean</field>
+    </record>
+    <record id="field_x_gov_violation__x_objection_filed" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_objection_filed</field>
+        <field name="field_description">تم تقديم اعتراض</field>
+        <field name="ttype">boolean</field>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_objection_filed_date" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_objection_filed_date</field>
+        <field name="field_description">تاريخ تقديم الاعتراض</field>
+        <field name="ttype">date</field>
+    </record>
+    <record id="field_x_gov_violation__x_objection_outcome" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_objection_outcome</field>
+        <field name="field_description">نتيجة الاعتراض</field>
+        <field name="ttype">selection</field>
+        <field name="selection">[('pending','قيد النظر'),('accepted','مقبول'),('rejected','مرفوض')]</field>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_objection_ref" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_objection_ref</field>
+        <field name="field_description">رقم طلب الاعتراض</field>
+        <field name="ttype">char</field>
+        <field name="index" eval="True"/>
+    </record>
+    <record id="field_x_gov_violation__x_objection_status_text" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_objection_status_text</field>
+        <field name="field_description">حالة طلب الاعتراض</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_violation__x_committee_decision" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_committee_decision</field>
+        <field name="field_description">قرار لجنة الاعتراض</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_violation__x_municipal_license" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_municipal_license</field>
+        <field name="field_description">رقم الترخيص البلدي / الهوية</field>
+        <field name="ttype">char</field>
+        <field name="index" eval="True"/>
+    </record>
+    <record id="field_x_gov_violation__x_license_type" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_license_type</field>
+        <field name="field_description">نوع الترخيص البلدي</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_violation__x_municipality" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_municipality</field>
+        <field name="field_description">الأمانة / البلدية</field>
+        <field name="ttype">char</field>
+        <field name="index" eval="True"/>
+    </record>
+    <record id="field_x_gov_violation__x_establishment" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_establishment</field>
+        <field name="field_description">اسم المنشأة</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_violation__x_regulation_clause" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_regulation_clause</field>
+        <field name="field_description">بند اللائحة</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_violation__x_repeat_count" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_repeat_count</field>
+        <field name="field_description">عدد مرات التكرار</field>
+        <field name="ttype">integer</field>
+    </record>
+    <record id="field_x_gov_violation__x_units" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_units</field>
+        <field name="field_description">عدد وحدات المخالفة</field>
+        <field name="ttype">integer</field>
+    </record>
+    <record id="field_x_gov_violation__x_main_item" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_main_item</field>
+        <field name="field_description">بند المخالفة الرئيسي</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_violation__x_inspector_note" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_inspector_note</field>
+        <field name="field_description">ملاحظات المراقب</field>
+        <field name="ttype">text</field>
+    </record>
+    <record id="field_x_gov_violation__x_needs_review" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_needs_review</field>
+        <field name="field_description">يحتاج تأكيد</field>
+        <field name="ttype">boolean</field>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_review_reason" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_review_reason</field>
+        <field name="field_description">سبب المراجعة</field>
+        <field name="ttype">text</field>
+    </record>
+    <record id="field_x_gov_violation__x_in_register" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_in_register</field>
+        <field name="field_description">موجودة في سجل بلدي</field>
+        <field name="ttype">boolean</field>
+    </record>
+    <record id="field_x_gov_violation__x_suspected_duplicate" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_suspected_duplicate</field>
+        <field name="field_description">مكررة محتملة</field>
+        <field name="ttype">boolean</field>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_user_id" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_user_id</field>
+        <field name="field_description">المسؤول عن المتابعة</field>
+        <field name="ttype">many2one</field>
+        <field name="relation">res.users</field>
+        <field name="on_delete">set null</field>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_note" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_note</field>
+        <field name="field_description">ملاحظات</field>
+        <field name="ttype">text</field>
+    </record>
+    <record id="field_x_gov_violation__x_reminder_sent" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_reminder_sent</field>
+        <field name="field_description">تم إرسال تذكير الاعتراض</field>
+        <field name="ttype">boolean</field>
+    </record>
+    <record id="field_x_gov_violation__x_refresh_stamp" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_refresh_stamp</field>
+        <field name="field_description">تحديث تقني</field>
+        <field name="ttype">datetime</field>
+    </record>
+    <record id="field_x_gov_violation__x_bill_id" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_bill_id</field>
+        <field name="field_description">فاتورة المورد</field>
+        <field name="ttype">many2one</field>
+        <field name="relation">account.move</field>
+        <field name="on_delete">set null</field>
+        <field name="tracking" eval="1"/>
+    </record>
+    <record id="field_x_gov_violation__x_division" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_division</field>
+        <field name="field_description">القسم</field>
+        <field name="ttype">selection</field>
+        <field name="selection">[('ew','سيدات (EW)'),('em','رجال (EM)'),('hotels','الفنادق'),('unalloc','غير مرتبط بفرع')]</field>
+        <field name="index" eval="True"/>
+        <field name="depends">x_branch_id,x_company_id</field>
+        <field name="compute"><![CDATA[for record in self:
+    branch = (record.x_branch_id.name or '').strip().upper()
+    if branch.startswith('EW'):
+        value = 'ew'
+    elif branch.startswith('EM'):
+        value = 'em'
+    elif 'sustainable' in (record.x_company_id.name or '').lower():
+        value = 'hotels'
+    else:
+        value = 'unalloc'
+    record['x_division'] = value]]></field>
+        <field name="store" eval="True"/>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="field_x_gov_violation__x_objection_state" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_objection_state</field>
+        <field name="field_description">نافذة الاعتراض</field>
+        <field name="ttype">selection</field>
+        <field name="selection">[('open','مفتوحة للاعتراض'),('filed','تم الاعتراض'),('expired','انتهت المهلة'),('not_allowed','الاعتراض غير مسموح')]</field>
+        <field name="index" eval="True"/>
+        <field name="depends">x_objection_allowed,x_objection_filed,x_objection_deadline,x_refresh_stamp</field>
+        <field name="compute"><![CDATA[today = datetime.date.today()
+for record in self:
+    if not record.x_objection_allowed:
+        value = 'not_allowed'
+    elif record.x_objection_filed:
+        value = 'filed'
+    elif not record.x_objection_deadline or record.x_objection_deadline >= today:
+        value = 'open'
+    else:
+        value = 'expired'
+    record['x_objection_state'] = value]]></field>
+        <field name="store" eval="True"/>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="field_x_gov_violation__x_days_left" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_days_left</field>
+        <field name="field_description">الأيام المتبقية</field>
+        <field name="ttype">integer</field>
+        <field name="depends">x_objection_deadline,x_objection_state</field>
+        <field name="compute"><![CDATA[today = datetime.date.today()
+for record in self:
+    if record.x_objection_state == 'open' and record.x_objection_deadline:
+        record['x_days_left'] = (record.x_objection_deadline - today).days
+    else:
+        record['x_days_left'] = 0]]></field>
+        <field name="store" eval="False"/>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="field_x_gov_violation__x_open_exposure" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_open_exposure</field>
+        <field name="field_description">المبلغ المستحق</field>
+        <field name="ttype">float</field>
+        <field name="depends">x_amount,x_status,x_suspected_duplicate,x_in_register</field>
+        <field name="compute"><![CDATA[for record in self:
+    if record.x_status == 'unpaid' and not record.x_suspected_duplicate and record.x_in_register:
+        record['x_open_exposure'] = record.x_amount
+    else:
+        record['x_open_exposure'] = 0.0]]></field>
+        <field name="store" eval="True"/>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="field_x_gov_violation__x_date_warning" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_date_warning</field>
+        <field name="field_description">تحذير تاريخ</field>
+        <field name="ttype">boolean</field>
+        <field name="depends">x_violation_date,x_objection_deadline,x_refresh_stamp</field>
+        <field name="compute"><![CDATA[today = datetime.date.today()
+for record in self:
+    day = record.x_violation_date
+    deadline = record.x_objection_deadline
+    record['x_date_warning'] = bool(day and (day > today or (deadline and deadline < day)))]]></field>
+        <field name="store" eval="True"/>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="field_x_gov_violation__x_bill_status" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_violation"/>
+        <field name="name">x_bill_status</field>
+        <field name="field_description">حالة فاتورة المورد</field>
+        <field name="ttype">char</field>
+        <field name="depends">x_bill_id.state,x_bill_id.payment_state</field>
+        <field name="compute"><![CDATA[LABELS = {'not_paid': 'غير مدفوعة', 'in_payment': 'قيد الدفع', 'paid': 'مدفوعة', 'partial': 'مدفوعة جزئياً', 'reversed': 'معكوسة'}
+for record in self:
+    bill = record.x_bill_id
+    if not bill:
+        value = ''
+    elif bill.state == 'draft':
+        value = 'مسودة'
+    elif bill.state == 'cancel':
+        value = 'ملغاة'
+    else:
+        value = LABELS.get(bill.payment_state, bill.payment_state or '')
+    record['x_bill_status'] = value]]></field>
+        <field name="store" eval="False"/>
+        <field name="readonly" eval="True"/>
+    </record>
+    <record id="field_x_gov_balady_line__x_name" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_name</field>
+        <field name="field_description">رقم المخالفة</field>
+        <field name="ttype">char</field>
+        <field name="required" eval="True"/>
+    </record>
+    <record id="field_x_gov_balady_line__x_violation_date" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_violation_date</field>
+        <field name="field_description">تاريخ رصد المخالفة</field>
+        <field name="ttype">date</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_license" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_license</field>
+        <field name="field_description">رقم الترخيص البلدي / رقم الهوية</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_license_type" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_license_type</field>
+        <field name="field_description">نوع الترخيص البلدي</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_municipality" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_municipality</field>
+        <field name="field_description">الأمانة / البلدية</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_establishment" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_establishment</field>
+        <field name="field_description">اسم المنشأة</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_clause" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_clause</field>
+        <field name="field_description">بند اللائحة</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_repeat_count" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_repeat_count</field>
+        <field name="field_description">عدد مرات تكرار المخالفة</field>
+        <field name="ttype">integer</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_units" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_units</field>
+        <field name="field_description">عدد وحدات المخالفة</field>
+        <field name="ttype">integer</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_deadline" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_deadline</field>
+        <field name="field_description">آخر موعد لتقديم الاعتراض</field>
+        <field name="ttype">date</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_days_left_file" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_days_left_file</field>
+        <field name="field_description">الأيام المتبقية للاعتراض</field>
+        <field name="ttype">integer</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_amount" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_amount</field>
+        <field name="field_description">قيمة الغرامة (ر.س)</field>
+        <field name="ttype">float</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_invoice" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_invoice</field>
+        <field name="field_description">رقم الفاتورة</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_invoice_status" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_invoice_status</field>
+        <field name="field_description">حالة فاتورة المخالفة</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_main_item" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_main_item</field>
+        <field name="field_description">بند المخالفة الرئيسي</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_inspector_note" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_inspector_note</field>
+        <field name="field_description">ملاحظات المراقب</field>
+        <field name="ttype">text</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_objection_ref" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_objection_ref</field>
+        <field name="field_description">رقم طلب الاعتراض</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_objection_date" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_objection_date</field>
+        <field name="field_description">تاريخ طلب الاعتراض</field>
+        <field name="ttype">date</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_objection_status" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_objection_status</field>
+        <field name="field_description">حالة طلب الاعتراض</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="field_x_gov_balady_line__x_decision" model="ir.model.fields">
+        <field name="model_id" ref="model_x_gov_balady_line"/>
+        <field name="name">x_decision</field>
+        <field name="field_description">قرار لجنة الاعتراض</field>
+        <field name="ttype">char</field>
+    </record>
+    <record id="model_x_gov_violation" model="ir.model">
+        <field name="order">x_violation_date desc, id desc</field>
+    </record>
+</odoo>
